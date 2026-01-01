@@ -3,7 +3,9 @@ import random
 from typing import List
 
 
-def init_weights(n_neurons: int, n_inputs: int) -> tuple[list[list[float]], list[float]]:
+def init_weights(
+    n_neurons: int, n_inputs: int
+) -> tuple[list[list[float]], list[float]]:
     """Return (weights, biases) with Xavier/Glorot init for a single layer."""
     std = math.sqrt(1 / n_inputs)
     W: List[List[float]] = []

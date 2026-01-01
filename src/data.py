@@ -5,7 +5,7 @@ NUM_CLASSES = 10
 
 
 def _data_dir() -> Path:
-    return Path(__file__).resolve().parent.parent / "data"
+    return Path(__file__).resolve().parent.parent / "data-sets"
 
 
 def _one_hot(label: int, num_classes: int = NUM_CLASSES) -> List[int]:
@@ -16,10 +16,8 @@ def _one_hot(label: int, num_classes: int = NUM_CLASSES) -> List[int]:
     return vec
 
 
-def _load_digit_file(filename: str) -> List[int]:
+def _load_digit_path(file_path: Path) -> List[int]:
     """Load an 8x8 digit text file of 0/1 characters into a flat list of ints."""
-    file_path = _data_dir() / filename
-
     if not file_path.exists():
         raise FileNotFoundError(f"Digit file not found: {file_path}")
 
@@ -41,13 +39,27 @@ def _load_digit_file(filename: str) -> List[int]:
     return digit
 
 
+def load_digit_file(filename: str | Path) -> List[int]:
+    """
+    Load a digit file from an absolute/relative path or from the bundled data dir.
+    """
+    candidate = Path(filename)
+    if candidate.is_absolute():
+        return _load_digit_path(candidate)
+
+    if candidate.exists():
+        return _load_digit_path(candidate)
+
+    return _load_digit_path(_data_dir() / candidate)
+
+
 def load_dataset() -> Tuple[List[List[int]], List[List[int]]]:
     """Return (images, hot_vectors) for digit_0.txt ... digit_9.txt."""
     images: List[List[int]] = []
     hot_vectors: List[List[int]] = []
     for digit in range(NUM_CLASSES):
         filename = f"digit_{digit}.txt"
-        pixels = _load_digit_file(filename)
+        pixels = _load_digit_path(_data_dir() / filename)
         images.append(pixels)
         hot_vectors.append(_one_hot(digit))
     return images, hot_vectors
