@@ -36,8 +36,18 @@ Render the input before predicting:
 python src/main.py predict --model model.json --input digit-samples/digit_4.txt --render
 ```
 
-Notes:
+## Network topology and limitations
 
-- The `--input` file can be any path; relative paths are looked up first as-given and then within `data-sets/`.
-- Model files are JSON and store `n_neurons`, `n_inputs`, `weights`, and `bias`.
-- The training script prints loss progress and final training accuracy.
+The model is a single-layer perceptron (logistic regression) with 64 inputs—one per pixel of the 8×8 bitmap—and 10 output neurons, one per digit class.
+
+A forward pass computes logits `z = Wx + b` and applies softmax, `softmax(z_i) = exp(z_i) / sum_j exp(z_j)`, to obtain a probability distribution.
+
+Targets are one-hot vectors of length 10.
+
+Training consists of feeding each input through the forward pass, computing softmax probabilities, comparing them to the one-hot target, and applying the gradient update; one full sweep over the 10 training samples constitutes an epoch.
+
+The loss minimized is cross-entropy, optimized with stochastic gradient descent; for softmax + cross-entropy the gradient with respect to each logit is `(probs - one_hot)`, yielding weight updates `w_ij -= lr * (probs_i - target_i) * x_j` and bias updates `b_i -= lr * (probs_i - target_i)`. The loss is calculated on a whole epoch and used to decide when to stop training.
+
+Early stopping monitors average loss with a patience of five epochs by default. Although training accuracy typically reaches 100% after roughly 50 epochs, additional epochs (often into the hundreds) reduce the loss further before patience halts training.
+
+Because the dataset contains only one exemplar per digit, the model largely memorizes these patterns; it will often classify heavily degraded versions of the provided digits (many 1s flipped to 0s) as the originals.
